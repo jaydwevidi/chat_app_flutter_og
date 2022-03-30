@@ -10,8 +10,10 @@ class XMessage {
     required this.textScaling,
     required this.timeText,
     required this.type,
+    required this.refKey,
   });
   late final String body;
+  late final String refKey;
   late final String datetime;
   late final bool edited;
   late final String receiverID;
@@ -33,6 +35,7 @@ class XMessage {
     textScaling = json['textScaling'];
     timeText = json['timeText'];
     type = json['type'];
+    refKey = json['refKey'];
   }
 
   Map<String, dynamic> toJson() {
@@ -47,6 +50,7 @@ class XMessage {
     _data['textScaling'] = textScaling;
     _data['timeText'] = timeText;
     _data['type'] = type;
+    _data['refKey'] = refKey;
     return _data;
   }
 

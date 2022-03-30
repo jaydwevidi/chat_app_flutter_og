@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:chat_app_flutter_og/models/message_x.dart';
@@ -15,24 +16,43 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  double msgCornorRadius = 20.0;
   var chat = "";
   var chatScale = 1.0;
   var isSwitched = false;
+  var lastseenTest = "na";
   var lastMessageID = 0;
   var messages = <XMessage>[];
+  var currentMineLastSeen = "";
   var backgroundURL =
       "https://www.dccomics.com/sites/default/files/field/image/DentTragedy_blog_611b24927f9810.08060226.jpg";
+  var otherUserLastSeen = "";
+  Timer? timer;
 
-  var wallpaper =
-      "https://wallpapers.ispazio.net/wp-content/uploads/2020/03/IMG_3403.jpg";
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  var wallpaper = "https://wallpapers.ispazio.net/wp-content/uploads/2020/03/IMG_3403.jpg";
+
   void initState() {
     super.initState();
     getMessages();
+    CheckLastSeen();
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      CheckLastSeen();
+    });
+    setWappaper();
   }
 
-  void getMessages() {
-    messages.add(createMessage());
+  void deleteMessage(String key) {
+    final dbRef = FirebaseDatabase.instance.ref().child("chatMessages").child("jayraj1999rajd2234");
+    dbRef.child(key).set(null);
+  }
 
+  void setWappaper() {
     FirebaseDatabase.instance
         .ref()
         .child("chats")
@@ -41,14 +61,12 @@ class _ChatPageState extends State<ChatPage> {
         .onValue
         .listen((event) {
       wallpaper = event.snapshot.value.toString();
-      log(backgroundURL);
       setState(() {});
     });
+  }
 
-    final dbRef = FirebaseDatabase.instance
-        .ref()
-        .child("chatMessages")
-        .child("jayraj1999rajd2234");
+  void getMessages() {
+    final dbRef = FirebaseDatabase.instance.ref().child("chatMessages").child("jayraj1999rajd2234");
 
     dbRef.onValue.listen((event) {
       messages.clear();
@@ -66,7 +84,7 @@ class _ChatPageState extends State<ChatPage> {
           message.seen = true;
           message.seentime = DateTime.now().toString();
         }
-        dbRef.child(key).set(message);
+        dbRef.child(key).set(message.toJson());
 
         setState(() {
           messages.insert(0, message);
@@ -75,34 +93,55 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  void putmessagesInOrder() {}
+
   void addMessage() {
     lastMessageID++;
-    final dbRef = FirebaseDatabase.instance
-        .ref()
-        .child("chatMessages")
-        .child("jayraj1999rajd2234")
-        .child("$lastMessageID");
+    final dbRef =
+        FirebaseDatabase.instance.ref().child("chatMessages").child("jayraj1999rajd2234").child("$lastMessageID");
 
-    dbRef.set(createMessage().toJson());
+    var newMessage = createMessage("$lastMessageID");
+
+    dbRef.set(newMessage.toJson());
 
     addLastMessage();
   }
 
   void addLastMessage() {
-    final dbRef = FirebaseDatabase.instance
-        .ref()
-        .child("chats")
-        .child("jayraj1999rajd2234")
-        .child("lastMessage");
+    final dbRef = FirebaseDatabase.instance.ref().child("chats").child("jayraj1999rajd2234").child("lastMessage");
 
-    dbRef.set(createMessage().toJson());
+    dbRef.set(createMessage(lastMessageID.toString()).toJson());
   }
 
-  XMessage createMessage() {
+  void CheckLastSeen() {
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('dd-MM HH:mm').format(now);
+
+    var ref = FirebaseDatabase.instance.ref().child("users");
+    if (currentMineLastSeen != formattedDate) {
+      ref.child("jayraj1999").child("lastseen").child("datetime").set(formattedDate);
+      currentMineLastSeen = formattedDate;
+      setWappaper();
+    }
+
+    var dd = "";
+    ref.child("rajd2234").child("lastseen").child("datetime").onValue.listen((event) {
+      dd = event.snapshot.value.toString();
+      if (dd == formattedDate) {
+        lastseenTest = "Online";
+      } else {
+        lastseenTest = dd;
+      }
+      setState(() {});
+    });
+  }
+
+  XMessage createMessage(String key) {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('hh:mm a').format(now);
 
     return XMessage(
+        refKey: key,
         body: chat,
         datetime: now.toString(),
         edited: false,
@@ -156,7 +195,7 @@ class _ChatPageState extends State<ChatPage> {
                   style: TextStyle(),
                 ),
                 Text(
-                  "Last Seen : 16:32",
+                  lastseenTest,
                   style: TextStyle(
                     fontWeight: FontWeight.w200,
                     fontSize: 12,
@@ -204,53 +243,57 @@ class _ChatPageState extends State<ChatPage> {
                             maxWidth: 250,
                           ),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(msgCornorRadius),
+                              topRight: Radius.circular(msgCornorRadius),
+                              bottomLeft: Radius.circular(msgCornorRadius),
+                            ),
                             color: Colors.blue,
                           ),
                           child: Padding(
                               padding: EdgeInsets.all(10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 20),
-                                    child: Text(messages[index].body,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                        ),
-                                        textScaleFactor: double.parse(
-                                            messages[index].textScaling)),
-                                  ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    width: 70,
-                                    child: Row(
-                                      children: [
-                                        Expanded(child: Container()),
-                                        Text(
-                                          messages[index].timeText,
+                              child: InkWell(
+                                onDoubleTap: () {
+                                  deleteMessage(messages[index].refKey);
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 20),
+                                      child: Text(messages[index].body,
                                           style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 10,
-                                              color: Colors.white),
-                                        ),
-                                        SizedBox(
-                                          width: 1,
-                                        ),
-                                        Icon(
-                                          messages[index].seen
-                                              ? Icons.done_all
-                                              : Icons.check,
-                                          color: Colors.white,
-                                          size: 14,
-                                        ),
-                                      ],
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                          ),
+                                          textScaleFactor: double.parse(messages[index].textScaling)),
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    SizedBox(
+                                      width: 70,
+                                      child: Row(
+                                        children: [
+                                          Expanded(child: Container()),
+                                          Text(
+                                            messages[index].timeText,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
+                                          ),
+                                          SizedBox(
+                                            width: 1,
+                                          ),
+                                          Icon(
+                                            messages[index].seen ? Icons.done_all : Icons.check,
+                                            color: Colors.white,
+                                            size: 14,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )),
                         ),
                       )
@@ -266,7 +309,11 @@ class _ChatPageState extends State<ChatPage> {
                             maxWidth: 250,
                           ),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(msgCornorRadius),
+                              topRight: Radius.circular(msgCornorRadius),
+                              bottomRight: Radius.circular(msgCornorRadius),
+                            ),
                             color: Colors.redAccent,
                           ),
                           child: Padding(
@@ -278,8 +325,7 @@ class _ChatPageState extends State<ChatPage> {
                                   padding: const EdgeInsets.only(right: 20),
                                   child: Text(
                                     messages[index].body,
-                                    textScaleFactor: double.parse(
-                                        messages[index].textScaling),
+                                    textScaleFactor: double.parse(messages[index].textScaling),
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 15,
@@ -296,18 +342,14 @@ class _ChatPageState extends State<ChatPage> {
                                       Expanded(child: Container()),
                                       Text(
                                         messages[index].timeText,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                            color: Colors.white),
+                                        style:
+                                            TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
                                       ),
                                       SizedBox(
                                         width: 1,
                                       ),
                                       Icon(
-                                        messages[index].seen
-                                            ? Icons.done_all
-                                            : Icons.check,
+                                        messages[index].seen ? Icons.done_all : Icons.check,
                                         color: Colors.white,
                                         size: 14,
                                       ),
@@ -345,8 +387,7 @@ class _ChatPageState extends State<ChatPage> {
                         blurRadius: 10,
                       )
                     ]),
-                child:
-                    Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 15),
