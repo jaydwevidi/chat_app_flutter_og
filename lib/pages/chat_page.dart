@@ -261,12 +261,16 @@ class _ChatPageState extends State<ChatPage> {
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.only(right: 20),
-                                      child: Text(messages[index].body,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                          ),
-                                          textScaleFactor: double.parse(messages[index].textScaling)),
+                                      child: messages[index].type == "1"
+                                          ? Text(
+                                              messages[index].body,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                              ),
+                                              textScaleFactor: double.parse(messages[index].textScaling),
+                                            )
+                                          : InteractiveViewer(child: Image.network(messages[index].body)),
                                     ),
                                     SizedBox(
                                       height: 5,
@@ -318,45 +322,50 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                           child: Padding(
                             padding: EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: Text(
-                                    messages[index].body,
-                                    textScaleFactor: double.parse(messages[index].textScaling),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
+                            child: InkWell(
+                              onDoubleTap: () {
+                                deleteMessage(messages[index].refKey);
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 20),
+                                    child: Text(
+                                      messages[index].body,
+                                      textScaleFactor: double.parse(messages[index].textScaling),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Container(
-                                  width: 70,
-                                  child: Row(
-                                    children: [
-                                      Expanded(child: Container()),
-                                      Text(
-                                        messages[index].timeText,
-                                        style:
-                                            TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
-                                      ),
-                                      SizedBox(
-                                        width: 1,
-                                      ),
-                                      Icon(
-                                        messages[index].seen ? Icons.done_all : Icons.check,
-                                        color: Colors.white,
-                                        size: 14,
-                                      ),
-                                    ],
+                                  SizedBox(
+                                    height: 5,
                                   ),
-                                ),
-                              ],
+                                  Container(
+                                    width: 70,
+                                    child: Row(
+                                      children: [
+                                        Expanded(child: Container()),
+                                        Text(
+                                          messages[index].timeText,
+                                          style:
+                                              TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
+                                        ),
+                                        SizedBox(
+                                          width: 1,
+                                        ),
+                                        Icon(
+                                          messages[index].seen ? Icons.done_all : Icons.check,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
