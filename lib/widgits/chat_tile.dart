@@ -13,6 +13,21 @@ class ChatTile extends StatefulWidget {
 }
 
 class _ChatTileState extends State<ChatTile> {
+  var profilePictures = [
+    "https://www.dccomics.com/sites/default/files/styles/comics320x485/public/Char_Thumb_Batman_20190116_5c3fc4b40fae42.85141247.jpg?itok=O3UVj2Np",
+    "https://www.dccomics.com/sites/default/files/field/image/DentTragedy_blog_611b24927f9810.08060226.jpg",
+    "https://www.dccomics.com/sites/default/files/styles/comics320x485/public/Char_Thumb_Aquaman_5c411a95e70ff5.50429372.jpg?itok=jQSdLKTj",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQagwPhzMM5XJz07CaqkRQBVIUVVPFwNeURVQ&usqp=CAU",
+    "https://static.wikia.nocookie.net/marvel_dc/images/6/61/Teen_Titans_Rebirth_Vol_1_1_Textless.jpg/revision/latest/scale-to-width-down/658?cb=20160518052637",
+  ];
+
+  var profileNames = [
+    "Bruce Wayne",
+    "Harvey Dent",
+    "Arthur Curry",
+    "Talia Al Ghul",
+    "Damian Wayne",
+  ];
   final int index;
 
   _ChatTileState(this.index);
@@ -61,7 +76,7 @@ class _ChatTileState extends State<ChatTile> {
               child: CircleAvatar(
                 radius: 35,
                 backgroundImage: NetworkImage(
-                    "https://www.dccomics.com/sites/default/files/field/image/DentTragedy_blog_611b24927f9810.08060226.jpg"),
+                    profilePictures[index % profilePictures.length]),
               ),
             ),
             Expanded(
@@ -76,7 +91,7 @@ class _ChatTileState extends State<ChatTile> {
                           Row(
                             children: <Widget>[
                               Text(
-                                "Harvey Dent",
+                                profileNames[index % profileNames.length],
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -92,9 +107,7 @@ class _ChatTileState extends State<ChatTile> {
                                         color: Theme.of(context).primaryColor,
                                       ),
                                     )
-                                  : Container(
-                                      child: null,
-                                    ),
+                                  : Container(),
                             ],
                           ),
                           Text(
